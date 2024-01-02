@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: account-service
+  config:
+    import: optional:configserver:http://localhost:8888
+#eureka:
+#  instance:
+#    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
