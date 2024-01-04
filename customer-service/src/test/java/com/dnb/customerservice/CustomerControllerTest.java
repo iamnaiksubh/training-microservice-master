@@ -2,6 +2,7 @@ package com.dnb.customerservice;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import com.dnb.customerservice.controller.CustomerController;
 import com.dnb.customerservice.dto.Customer;
@@ -48,9 +50,26 @@ public class CustomerControllerTest {
 	}
 	
 	@Test
-	public void getCustomerByIdTest() throws InvalidContactNumberException, InvalidIdException, IdNotFoundException {
+	public void deleteCustomerByIdTest_IdNotFoundException() throws IdNotFoundException {
+		when(customerService.deleteCustomer(13)).thenThrow(IdNotFoundException.class);
+		
+		try {
+			customerController.deleteCustomerById(13);
+		} catch (IdNotFoundException e) {
+			assertEquals("customer id not found",e.getMessage());
+		}
+	}
+	
+	@Test
+	public void deleteCustomerByIdTest_NotAbleToDelete() throws IdNotFoundException {
+		when(customerService.deleteCustomer(14)).thenReturn(false);
+		
+		assertEquals(HttpStatus.NOT_FOUND, customerController.deleteCustomerById(14).getStatusCode());
+	}
+	
+	@Test
+	public void getCustomerByIdTest() throws IdNotFoundException, InvalidContactNumberException, InvalidIdException {
 		Customer customer = new Customer();
-		customer.setCustomerId(11);
 		
 		when(customerService.getCustomerById(11)).thenReturn(Optional.of(customer));
 		
@@ -58,13 +77,50 @@ public class CustomerControllerTest {
 	}
 	
 	@Test
+	public void getCustomerByIdTest_IdNotFoundException() throws InvalidIdException {
+		
+		when(customerService.getCustomerById(0)).thenReturn(Optional.empty());
+		
+		try {
+			customerController.getCustomerById(0);
+		} catch (IdNotFoundException e) {
+			assertEquals("customer id not found", e.getMessage());
+		}
+	}
+	
+	@Test
+	public void getCustomerByIdTest_InvalidIdException() throws  IdNotFoundException, InvalidIdException {
+		
+		when(customerService.getCustomerById(-2)).thenThrow(new InvalidIdException("invalid customer id"));
+		
+		try {
+			customerController.getCustomerById(-2);
+		} catch (InvalidIdException e) {
+			assertEquals("invalid customer id", e.getMessage());
+		}
+	}
+	
+	@Test
 	public void getCustomerByContactNumberTest() throws InvalidContactNumberException {
 		Customer customer = new Customer();
-		customer.setCustomerContactNumber("9876543210");
 		
 		when(customerService.getCustomerByContactNumber("9876543210")).thenReturn(Optional.of(customer));
 		
 		assertEquals(HttpStatus.OK, customerController.getCustomerByContactNumber("9876543210").getStatusCode());
+	}
+	
+	@Test
+	public void getCustomerByContactNumberTest_InvalidContactNumberException() {
+		String contactNumber = "0000000000";
+		
+		when(customerService.getCustomerByContactNumber(contactNumber)).thenReturn(Optional.empty());
+		
+		try {
+			customerController.getCustomerByContactNumber(contactNumber);
+		} catch (InvalidContactNumberException e) {
+			assertEquals("contact number does not found", e.getMessage());
+		}
+			
 	}
 	
 	@Test
@@ -82,4 +138,5 @@ public class CustomerControllerTest {
 		assertEquals(list, customerController.getAllCustomer().getBody());
 		
 	}
+	
 }

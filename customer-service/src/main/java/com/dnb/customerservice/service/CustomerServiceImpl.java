@@ -18,20 +18,16 @@ public class CustomerServiceImpl implements CustomerService {
 	
 	@Override
 	public Customer createCustomer(Customer customer) {
-		// TODO Auto-generated method stub
 		return customerRepository.save(customer);
 	}
 
 	@Override
-	public Optional<Customer> getCustomerById(int customerId)
-			throws InvalidContactNumberException, InvalidIdException {
-		// TODO Auto-generated method stub
+	public Optional<Customer> getCustomerById(int customerId) throws InvalidIdException {
 		return customerRepository.findById(customerId);
 	}
 
 	@Override
 	public boolean deleteCustomer(int customerId) throws IdNotFoundException {
-		// TODO Auto-generated method stub
 		
 		if (customerRepository.existsById(customerId)) {
 			customerRepository.deleteById(customerId);
@@ -41,14 +37,11 @@ public class CustomerServiceImpl implements CustomerService {
 			}
 		}
 		
-		throw new IdNotFoundException("iss id ka customer nahi hai");
+		throw new IdNotFoundException("customer id not found");
 	}
 
 	@Override
-	public Iterable<Customer> getAllCustomer()
-			throws InvalidContactNumberException, InvalidIdException {
-		// TODO Auto-generated method stub
-		
+	public Iterable<Customer> getAllCustomer() {
 		return customerRepository.findAll();
 	}
 

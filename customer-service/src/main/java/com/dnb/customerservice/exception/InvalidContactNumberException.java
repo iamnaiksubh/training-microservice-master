@@ -7,9 +7,5 @@ public class InvalidContactNumberException extends Exception{
 		super(msg);
 	}
 	
-	@Override
-	public String toString() {
-		// TODO Auto-generated method stub
-		return super.toString() + getMessage();
-	}
+	
 }

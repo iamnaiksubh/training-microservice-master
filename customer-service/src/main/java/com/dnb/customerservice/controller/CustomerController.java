@@ -22,7 +22,7 @@ import com.dnb.customerservice.service.CustomerService;
 
 @CrossOrigin("*")
 @RestController
-@RequestMapping("/customer")
+@RequestMapping("/api/customer")
 public class CustomerController {
 	
 	@Autowired
@@ -34,35 +34,34 @@ public class CustomerController {
 	}
 	
 	@DeleteMapping("/{customerId}")
-	public ResponseEntity<?> deleteCustomerById(@PathVariable("customerId") int customerId) {
+	public ResponseEntity<?> deleteCustomerById(@PathVariable("customerId") int customerId) throws IdNotFoundException {
 		try {
 			if (customerService.deleteCustomer(customerId)) {
 				return ResponseEntity.ok("customer deleted");
 			}
 		} catch (IdNotFoundException e) {
-			return ResponseEntity.notFound().build();
+			throw new IdNotFoundException("customer id not found");
 		}
-		return ResponseEntity.notFound().build();
+		return new ResponseEntity(HttpStatus.NOT_FOUND);
 	}
 	
 	@GetMapping("/{customerId}")
-	public ResponseEntity<?> getCustomerById(@PathVariable("customerId") int customerId) throws IdNotFoundException{
+	public ResponseEntity<?> getCustomerById(@PathVariable("customerId") int customerId) throws IdNotFoundException, InvalidIdException{
+		Optional<Customer> customerOptional;
 		try {
-			System.out.println("this service is running");
-			Optional<Customer> customerOptional =  customerService.getCustomerById(customerId);
-			
+			customerOptional = customerService.getCustomerById(customerId);
 			if (customerOptional.isPresent()) {
 				return ResponseEntity.ok(customerOptional.get());
 			}
 			
 			throw new IdNotFoundException("customer id not found");
-		} catch (InvalidContactNumberException | InvalidIdException e) {
-			throw new IdNotFoundException("customer id not found");
+			
+		} catch (InvalidIdException e) {
+			throw new InvalidIdException("invalid customer id");
 		}
+		
 	}
 	
-
-	// fetch the details based on contact number
 	
 	@GetMapping("/cn/{contactNumber:^[0-9]{10}$}")
 	public ResponseEntity<?> getCustomerByContactNumber(@PathVariable("contactNumber") String contactNumber) throws InvalidContactNumberException{
@@ -77,21 +76,11 @@ public class CustomerController {
 	
 	
 	@GetMapping("/allCustomer")
-	public ResponseEntity<?> getAllCustomer() throws InvalidContactNumberException{
+	public ResponseEntity<?> getAllCustomer(){
 		Iterable<Customer> result = null;
-		try {
-//			try {
-				result = customerService.getAllCustomer();
-//			}
-//			catch (InvalidPanException | InvalidUUIDException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-			
-			return ResponseEntity.ok(result);
-		} catch (InvalidContactNumberException | InvalidIdException e) {
-			throw new InvalidContactNumberException("contact number does not found");
-		}
+		result = customerService.getAllCustomer();
+		
+		return ResponseEntity.ok(result);
 		
 	}
 	
